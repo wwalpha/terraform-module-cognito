@@ -73,7 +73,7 @@ resource "aws_cognito_user_pool" "this" {
   }
 
   dynamic "sms_configuration" {
-    for_each = ["${local.sms_configuration}"]
+    for_each = "${local.sms_configuration}"
 
     content {
       external_id    = "${sms_configuration.value.external_id}"

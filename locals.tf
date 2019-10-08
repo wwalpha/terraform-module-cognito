@@ -1,11 +1,11 @@
 locals {
 
-  empty_map = {}
-  sms_configuration_map = "${map(
+  empty_list = []
+  sms_configuration_list = ["${map(
     "external_id", local.external_id,
     "sns_caller_arn", aws_iam_role.sms.0.arn
-  )}"
-  sms_configuration = "${local.mfa_enabled ? local.sms_configuration_map : local.empty_map}"
+  )}"]
+  sms_configuration = "${local.mfa_enabled ? local.sms_configuration_list : local.empty_list}"
 
   # invite_message_template_map = "${map(
   #   "email_subject", var.invite_email_subject,
