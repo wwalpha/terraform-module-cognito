@@ -40,7 +40,7 @@ variable "unused_account_validity_days" {
 # Conflicts with username_attributes.
 # -------------------------------------------------------------------------------------------
 variable "alias_attributes" {
-  default = []
+  default = null
 }
 # -------------------------------------------------------------------------------------------
 # The attributes to be auto-verified. Possible values: email, phone_number.
@@ -228,61 +228,54 @@ variable "password_require_uppercase" {
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 # Schema Attributes
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-# -------------------------------------------------------------------------------------------
-# The name of the attribute.
-# -------------------------------------------------------------------------------------------
-variable "schema_name" {
-  default = null
+variable "schema" {
+  type = list(object({
+    # ---------------------------------------------------------------------------------------
+    # The name of the attribute.
+    # ---------------------------------------------------------------------------------------
+    name = string
+    # -------------------------------------------------------------------------------------------
+    # The attribute data type. Must be one of Boolean, Number, String, DateTime.
+    # -------------------------------------------------------------------------------------------
+    attribute_data_type = string
+    # -------------------------------------------------------------------------------------------
+    # Specifies whether the attribute type is developer only.
+    # -------------------------------------------------------------------------------------------
+    developer_only_attribute = bool
+    # -------------------------------------------------------------------------------------------
+    # Specifies whether the attribute can be changed once it has been created.
+    # -------------------------------------------------------------------------------------------
+    mutable = bool
+    # -------------------------------------------------------------------------------------------
+    # Specifies whether a user pool attribute is required. 
+    # If the attribute is required and the user does not provide a value, registration or sign-in will fail.
+    # -------------------------------------------------------------------------------------------
+    required = bool
+    # -------------------------------------------------------------------------------------------
+    # The maximum length of an attribute value of the string type.
+    # -------------------------------------------------------------------------------------------
+    string_attribute_max_length = string
+    # -------------------------------------------------------------------------------------------
+    # The minimum length of an attribute value of the string type.
+    # -------------------------------------------------------------------------------------------
+    string_attribute_min_length = string
+  }))
+  default = []
 }
-# -------------------------------------------------------------------------------------------
-# The attribute data type. Must be one of Boolean, Number, String, DateTime.
-# -------------------------------------------------------------------------------------------
-variable "schema_attribute_data_type" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# Specifies whether the attribute type is developer only.
-# -------------------------------------------------------------------------------------------
-variable "developer_only_attribute" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# Specifies whether the attribute can be changed once it has been created.
-# -------------------------------------------------------------------------------------------
-variable "mutable" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# The maximum value of an attribute that is of the number data type.
-# -------------------------------------------------------------------------------------------
-variable "number_attribute_max_value" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# The minimum value of an attribute that is of the number data type.
-# -------------------------------------------------------------------------------------------
-variable "number_attribute_min_value" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# Specifies whether a user pool attribute is required. 
-# If the attribute is required and the user does not provide a value, registration or sign-in will fail.
-# -------------------------------------------------------------------------------------------
-variable "required" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# The maximum length of an attribute value of the string type.
-# -------------------------------------------------------------------------------------------
-variable "string_attribute_max_length" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# The minimum length of an attribute value of the string type.
-# -------------------------------------------------------------------------------------------
-variable "string_attribute_min_length" {
-  default = null
-}
+
+# # -------------------------------------------------------------------------------------------
+# # The maximum value of an attribute that is of the number data type.
+# # -------------------------------------------------------------------------------------------
+# variable "number_attribute_max_value" {
+#   default = null
+# }
+# # -------------------------------------------------------------------------------------------
+# # The minimum value of an attribute that is of the number data type.
+# # -------------------------------------------------------------------------------------------
+# variable "number_attribute_min_value" {
+#   default = null
+# }
+
 
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
@@ -291,16 +284,16 @@ variable "string_attribute_min_length" {
 # -------------------------------------------------------------------------------------------
 # The external ID used in IAM role trust relationships. 
 # -------------------------------------------------------------------------------------------
-variable "sms_external_id" {
-  default = null
-}
-# -------------------------------------------------------------------------------------------
-# The ARN of the Amazon SNS caller. 
-# This is usually the IAM role that you've given Cognito permission to assume.
-# -------------------------------------------------------------------------------------------
-variable "sns_caller_arn" {
-  default = null
-}
+# variable "sms_external_id" {
+#   default = null
+# }
+# # -------------------------------------------------------------------------------------------
+# # The ARN of the Amazon SNS caller. 
+# # This is usually the IAM role that you've given Cognito permission to assume.
+# # -------------------------------------------------------------------------------------------
+# variable "sns_caller_arn" {
+#   default = null
+# }
 
 # ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 # User Pool Add-ons

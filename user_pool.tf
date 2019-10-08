@@ -5,7 +5,7 @@ resource "aws_cognito_user_pool" "this" {
   name = "${var.user_pool_name}"
 
   alias_attributes           = "${var.alias_attributes}"
-  auto_verified_attributes   = "${var.auto_verified_attributes}"
+  auto_verified_attributes   = "${local.auto_verified_attributes}"
   mfa_configuration          = "${var.mfa_configuration}"
   email_verification_subject = "${var.email_verification_subject}"
   email_verification_message = "${var.email_verification_message}"
@@ -22,6 +22,22 @@ resource "aws_cognito_user_pool" "this" {
       email_subject = "${var.invite_email_subject}"
       email_message = "${var.invite_email_message}"
       sms_message   = "${var.invite_sms_message}"
+    }
+  }
+  dynamic "schema" {
+    for_each = "${var.schema}"
+
+    content {
+      name                     = "${schema.value.name}"
+      attribute_data_type      = "${schema.value.attribute_data_type}"
+      developer_only_attribute = "${schema.value.developer_only_attribute}"
+      mutable                  = "${schema.value.mutable}"
+      required                 = "${schema.value.required}"
+
+      string_attribute_constraints {
+        max_length = "${schema.value.string_attribute_max_length}"
+        min_length = "${schema.value.string_attribute_min_length}"
+      }
     }
   }
 
@@ -57,11 +73,11 @@ resource "aws_cognito_user_pool" "this" {
   }
 
   dynamic "sms_configuration" {
-    for_each = "${local.sms_configuration}"
+    for_each = ["${local.sms_configuration}"]
 
     content {
-      external_id    = "${sms_configuration.external_id}"
-      sns_caller_arn = "${sms_configuration.sns_caller_arn}"
+      external_id    = "${sms_configuration.value.external_id}"
+      sns_caller_arn = "${sms_configuration.value.sns_caller_arn}"
     }
   }
 

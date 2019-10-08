@@ -2,11 +2,10 @@ locals {
 
   empty_map = {}
   sms_configuration_map = "${map(
-    "external_id", var.sms_external_id,
-    "sns_caller_arn", var.sns_caller_arn
+    "external_id", local.external_id,
+    "sns_caller_arn", aws_iam_role.sms.0.arn
   )}"
-
-  sms_configuration = "${var.sms_external_id != null && var.sns_caller_arn != null ? local.sms_configuration_map : local.empty_map}"
+  sms_configuration = "${local.mfa_enabled ? local.sms_configuration_map : local.empty_map}"
 
   # invite_message_template_map = "${map(
   #   "email_subject", var.invite_email_subject,
@@ -28,4 +27,12 @@ locals {
     ? var.unauthenticated_role_name
     : "${var.identity_pool_name}_UnauthenticatedRole"
   }"
+
+  external_id = "${uuid()}"
+
+  # MFA Enabled
+  mfa_enabled = "${var.mfa_configuration == "ON" || var.mfa_configuration == "OPTIONAL"}"
+
+  auto_verified_attributes_mfa = ["email", "phone_number"]
+  auto_verified_attributes     = "${length(var.auto_verified_attributes) != 0 ? var.auto_verified_attributes : local.auto_verified_attributes_mfa}"
 }
