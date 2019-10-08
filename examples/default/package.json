@@ -1,0 +1,11 @@
+{
+  "name": "cognito_user_pool",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "prestart": "terraform init",
+    "start": "terraform apply -auto-approve=true",
+    "destroy": "terraform destroy -auto-approve=true"
+  }
+}

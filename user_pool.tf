@@ -2,69 +2,81 @@
 # Amazon Cognito User Pool
 # -------------------------------------------------------
 resource "aws_cognito_user_pool" "this" {
-  name = "${local.project_name_uc}-UserPool"
+  name = "${var.user_pool_name}"
 
-  alias_attributes         = ["email"]
-  auto_verified_attributes = ["email"]
+  alias_attributes           = "${var.alias_attributes}"
+  auto_verified_attributes   = "${var.auto_verified_attributes}"
+  mfa_configuration          = "${var.mfa_configuration}"
+  email_verification_subject = "${var.email_verification_subject}"
+  email_verification_message = "${var.email_verification_message}"
+  sms_authentication_message = "${var.sms_authentication_message}"
+  sms_verification_message   = "${var.sms_verification_message}"
+  username_attributes        = "${var.username_attributes}"
+  tags                       = "${var.user_pool_tags}"
 
   admin_create_user_config {
-    allow_admin_create_user_only = false
-    unused_account_validity_days = 7
+    allow_admin_create_user_only = "${var.allow_admin_create_user_only}"
+    # temporary_password_validity_days = "${var.unused_account_validity_days}"
+
+    invite_message_template {
+      email_subject = "${var.invite_email_subject}"
+      email_message = "${var.invite_email_message}"
+      sms_message   = "${var.invite_sms_message}"
+    }
+  }
+
+  device_configuration {
+    challenge_required_on_new_device      = "${var.challenge_required_on_new_device}"
+    device_only_remembered_on_user_prompt = "${var.device_only_remembered_on_user_prompt}"
+  }
+
+  email_configuration {
+    reply_to_email_address = "${var.reply_to_email_address}"
+    source_arn             = "${var.email_source_arn}"
+  }
+
+  lambda_config {
+    create_auth_challenge          = "${var.create_auth_challenge}"
+    custom_message                 = "${var.custom_message}"
+    define_auth_challenge          = "${var.define_auth_challenge}"
+    post_authentication            = "${var.post_authentication}"
+    post_confirmation              = "${var.post_confirmation}"
+    pre_authentication             = "${var.pre_authentication}"
+    pre_sign_up                    = "${var.pre_sign_up}"
+    pre_token_generation           = "${var.pre_token_generation}"
+    user_migration                 = "${var.user_migration}"
+    verify_auth_challenge_response = "${var.verify_auth_challenge_response}"
   }
 
   password_policy {
-    minimum_length    = 8
-    require_lowercase = false
-    require_numbers   = false
-    require_symbols   = false
-    require_uppercase = false
+    minimum_length    = "${var.password_minimum_length}"
+    require_lowercase = "${var.password_require_lowercase}"
+    require_numbers   = "${var.password_require_numbers}"
+    require_symbols   = "${var.password_require_symbols}"
+    require_uppercase = "${var.password_require_uppercase}"
   }
 
-  // TODO: terraform bug
-  # lambda_config {
-  #   post_authentication = "${module.S002.arn}"
-  #   post_confirmation   = "${module.S002.arn}"
-  # }
+  dynamic "sms_configuration" {
+    for_each = "${local.sms_configuration}"
 
-  # schema {
-  #   name                     = "custom_attribute"
-  #   attribute_data_type      = "Number"
-  #   developer_only_attribute = false
-  #   mutable                  = true
-  #   required                 = false
-
-  #   number_attribute_constraints {
-  #     min_value = 1
-  #     max_value = 50000000
-  #   }
-  # }
-
-  # mfa_configuration = "OPTIONAL"
-  mfa_configuration = "OFF"
-
-  # sms_configuration {
-  #   external_id    = "${var.environment}_${var.name}_sns_external_id"
-  #   sns_caller_arn = "${aws_iam_role.cognito_sns_role.arn}"
-  # }
-
-  /*
-  # email was a required field, but it ended up causing issues for any social
-  # users whose identity is actually their mobile number. So to avoid problems
-  # authenticating those users, we no longer require an email to be provided.
-  schema {
-    name                     = "email"
-    attribute_data_type      = "String"
-    developer_only_attribute = false
-    mutable                  = true
-    required                 = true
-
-    string_attribute_constraints {
-      min_length = 1
-      max_length = 2048
+    content {
+      external_id    = "${sms_configuration.external_id}"
+      sns_caller_arn = "${sms_configuration.sns_caller_arn}"
     }
   }
-  */
 
+  user_pool_add_ons {
+    advanced_security_mode = "${var.advanced_security_mode}"
+  }
+
+  verification_message_template {
+    default_email_option  = "${var.verify_default_email_option}"
+    email_message         = "${var.verify_email_message}"
+    email_message_by_link = "${var.verify_email_message_by_link}"
+    email_subject         = "${var.verify_email_subject}"
+    email_subject_by_link = "${var.verify_email_subject_by_link}"
+    sms_message           = "${var.verify_sms_message}"
+  }
 }
 
 
@@ -72,10 +84,31 @@ resource "aws_cognito_user_pool" "this" {
 # Amazon Cognito User Pool Client
 # -------------------------------------------------------
 resource "aws_cognito_user_pool_client" "this" {
-  name = "client"
+  name = "${var.user_pool_name}Client"
 
   user_pool_id = "${aws_cognito_user_pool.this.id}"
 
-  generate_secret     = false
-  explicit_auth_flows = ["ADMIN_NO_SRP_AUTH"]
+  allowed_oauth_flows                  = "${var.allowed_oauth_flows}"
+  allowed_oauth_flows_user_pool_client = "${var.allowed_oauth_flows_user_pool_client}"
+  allowed_oauth_scopes                 = "${var.allowed_oauth_scopes}"
+  callback_urls                        = "${var.callback_urls}"
+  default_redirect_uri                 = "${var.default_redirect_uri}"
+  explicit_auth_flows                  = "${var.explicit_auth_flows}"
+  generate_secret                      = "${var.generate_secret}"
+  logout_urls                          = "${var.logout_urls}"
+  read_attributes                      = "${var.read_attributes}"
+  refresh_token_validity               = "${var.refresh_token_validity}"
+  supported_identity_providers         = "${var.supported_identity_providers}"
+  write_attributes                     = "${var.write_attributes}"
+}
+
+# -------------------------------------------------------
+# Amazon Cognito User Pool Client Domain
+# -------------------------------------------------------
+resource "aws_cognito_user_pool_domain" "this" {
+  domain          = "${var.domain}"
+  user_pool_id    = "${aws_cognito_user_pool.this.id}"
+  certificate_arn = "${var.certificate_arn}"
+
+  count = "${var.domain != null ? 1 : 0}"
 }

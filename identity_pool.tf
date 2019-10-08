@@ -2,12 +2,15 @@
 # AWS Cognito Identity Pool
 # ---------------------------------------------------------------
 resource "aws_cognito_identity_pool" "this" {
-  depends_on = [
-    "aws_cognito_user_pool.this",
-  ]
+  depends_on = ["aws_cognito_user_pool_client.this"]
 
-  identity_pool_name               = "${local.project_name_uc}_IdentityPool"
-  allow_unauthenticated_identities = false
+  identity_pool_name               = "${var.identity_pool_name}"
+  allow_unauthenticated_identities = "${var.allow_unauthenticated_identities}"
+  developer_provider_name          = "${var.developer_provider_name}"
+  openid_connect_provider_arns     = "${var.openid_connect_provider_arns}"
+  saml_provider_arns               = "${var.saml_provider_arns}"
+  supported_login_providers        = "${var.supported_login_providers}"
+  tags                             = "${var.identity_pool_tags}"
 
   cognito_identity_providers {
     client_id               = "${aws_cognito_user_pool_client.this.id}"
@@ -25,7 +28,7 @@ resource "aws_cognito_identity_pool" "this" {
 # AWS Cognito Identity Pool Role Attachment
 # ---------------------------------------------------------------
 resource "aws_cognito_identity_pool_roles_attachment" "this" {
-  identity_pool_id = "${local.cognito_identity_pool_id}"
+  identity_pool_id = "${aws_cognito_identity_pool.this.id}"
 
   # role_mapping {
   #   identity_provider         = "graph.facebook.com"
@@ -50,10 +53,10 @@ resource "aws_cognito_identity_pool_roles_attachment" "this" {
 # ---------------------------------------------------------------
 # AWS Cognito Authenticated Principals JSON
 # ---------------------------------------------------------------
-data "template_file" "cognito_authenticated" {
+data "template_file" "cognito_principal_authenticated" {
   template = "${file("${path.module}/iam/cognito_principal_auth.tpl")}"
   vars = {
-    identity_pool_id = "${local.cognito_identity_pool_id}"
+    identity_pool_id = "${aws_cognito_identity_pool.this.id}"
   }
 }
 
@@ -61,31 +64,32 @@ data "template_file" "cognito_authenticated" {
 # AWS Cognito Authenticated Role
 # ---------------------------------------------------------------
 resource "aws_iam_role" "cognito_authenticated" {
-  name = "${local.project_name_uc}_Cognito_AuthRole"
+  depends_on = ["aws_cognito_identity_pool.this"]
 
-  assume_role_policy = "${data.template_file.cognito_authenticated.rendered}"
+  name               = "${local.authenticated_role_name}"
+  assume_role_policy = "${data.template_file.cognito_principal_authenticated.rendered}"
 }
 
 # ---------------------------------------------------------------
-# AWS Cognito Authenticated Policy
+# AWS Cognito Authenticated Policy JSON
 # ---------------------------------------------------------------
-data "template_file" "cognito_policy_authenticated" {
-  template = "${file("${path.module}/iam/cognito_policy_auth.tpl")}"
-  vars = {
-    api_execution_arn = "${aws_api_gateway_stage.this.execution_arn}/*"
-  }
-}
+# data "template_file" "cognito_policy_authenticated" {
+#   template = "${file("${path.module}/iam/cognito_policy_auth.tpl")}"
+#   vars = {
+#     api_execution_arn = "${aws_api_gateway_stage.this.execution_arn}/*"
+#   }
+# }
 
 resource "aws_iam_role_policy" "cognito_authenticated" {
   role = "${aws_iam_role.cognito_authenticated.id}"
 
-  policy = "${data.template_file.cognito_policy_authenticated.rendered}"
+  policy = "${file("${path.module}/iam/cognito_policy_auth.json")}"
 }
 
 # ---------------------------------------------------------------
 # AWS Cognito UnAuthenticated Principals JSON
 # ---------------------------------------------------------------
-data "template_file" "cognito_unauthenticated" {
+data "template_file" "cognito_principal_unauthenticated" {
   template = "${file("${path.module}/iam/cognito_principal_unauth.tpl")}"
   vars = {
     identity_pool_id = "${aws_cognito_identity_pool.this.id}"
@@ -96,9 +100,10 @@ data "template_file" "cognito_unauthenticated" {
 # AWS Cognito UnAuthenticated Role
 # ---------------------------------------------------------------
 resource "aws_iam_role" "cognito_unauthenticated" {
-  name = "${local.project_name_uc}_Cognito_UnauthRole"
+  depends_on = ["aws_cognito_identity_pool.this"]
 
-  assume_role_policy = "${data.template_file.cognito_unauthenticated.rendered}"
+  name               = "${local.unauthenticated_role_name}"
+  assume_role_policy = "${data.template_file.cognito_principal_unauthenticated.rendered}"
 }
 
 # ---------------------------------------------------------------
