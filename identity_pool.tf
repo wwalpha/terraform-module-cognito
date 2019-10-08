@@ -10,7 +10,6 @@ resource "aws_cognito_identity_pool" "this" {
   openid_connect_provider_arns     = "${var.openid_connect_provider_arns}"
   saml_provider_arns               = "${var.saml_provider_arns}"
   supported_login_providers        = "${var.supported_login_providers}"
-  tags                             = "${var.identity_pool_tags}"
 
   cognito_identity_providers {
     client_id               = "${aws_cognito_user_pool_client.this.id}"
