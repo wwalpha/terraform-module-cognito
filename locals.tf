@@ -34,5 +34,5 @@ locals {
   mfa_enabled = "${var.mfa_configuration == "ON" || var.mfa_configuration == "OPTIONAL"}"
 
   auto_verified_attributes_mfa = ["email", "phone_number"]
-  auto_verified_attributes     = "${length(var.auto_verified_attributes) != 0 ? var.auto_verified_attributes : local.auto_verified_attributes_mfa}"
+  auto_verified_attributes     = "${length(var.auto_verified_attributes) != 0 ? var.auto_verified_attributes : null}"
 }
