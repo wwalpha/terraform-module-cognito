@@ -3,7 +3,7 @@ locals {
   sms_configuration_list = [
     {
       "external_id"    = local.external_id
-      "sns_caller_arn" = aws_iam_role.sms[0].arn
+      "sns_caller_arn" = local.mfa_enabled ? aws_iam_role.sms[0].arn : null
     },
   ]
   sms_configuration = local.mfa_enabled ? local.sms_configuration_list : local.empty_list
